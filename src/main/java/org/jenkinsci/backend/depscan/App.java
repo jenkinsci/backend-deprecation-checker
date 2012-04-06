@@ -3,6 +3,7 @@ package org.jenkinsci.backend.depscan;
 import hudson.util.VersionNumber;
 import org.jenkinsci.backend.depscan.checkers.AbstractItem_getParentChecker;
 import org.jenkinsci.backend.depscan.checkers.Items_fromNameListChecker;
+import org.jenkinsci.backend.depscan.checkers.JenkinsGetItemByFullNameChecker;
 import org.jenkinsci.backend.depscan.util.TeeMethodVisitor;
 import org.jvnet.hudson.update_center.DefaultMavenRepositoryBuilder;
 import org.jvnet.hudson.update_center.HPI;
@@ -75,7 +76,8 @@ public class App {
                 };
                 final MethodVisitor checker = new TeeMethodVisitor(
                         new Items_fromNameListChecker(reporter),
-                        new AbstractItem_getParentChecker(reporter)
+                        new AbstractItem_getParentChecker(reporter),
+                        new JenkinsGetItemByFullNameChecker(reporter)
                 );
                 cr.accept(new EmptyVisitor() {
                     @Override
