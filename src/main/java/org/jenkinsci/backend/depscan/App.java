@@ -1,6 +1,7 @@
 package org.jenkinsci.backend.depscan;
 
 import hudson.util.VersionNumber;
+import org.jenkinsci.backend.depscan.util.TeeMethodVisitor;
 import org.jvnet.hudson.update_center.DefaultMavenRepositoryBuilder;
 import org.jvnet.hudson.update_center.HPI;
 import org.jvnet.hudson.update_center.MavenRepositoryImpl;
@@ -70,7 +71,10 @@ public class App {
                                 pos);
                     }
                 };
-                final MethodVisitor checker = new Items_fromNameListChecker(reporter);
+                final MethodVisitor checker = new TeeMethodVisitor(
+                        new Items_fromNameListChecker(reporter),
+                        new AbstractItem_getParent(reporter)
+                );
                 cr.accept(new EmptyVisitor() {
                     @Override
                     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {

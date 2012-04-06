@@ -1,11 +1,14 @@
 package org.jenkinsci.backend.depscan;
 
+import hudson.model.Hudson;
 import hudson.model.Items;
 import hudson.util.VersionNumber;
-import org.kohsuke.asm3.Type;
+import jenkins.model.Jenkins;
 import org.kohsuke.asm3.commons.EmptyVisitor;
 
 /**
+ * Check context-less version.
+ *
  * @author Kohsuke Kawaguchi
  */
 public class Items_fromNameListChecker extends EmptyVisitor {
@@ -17,17 +20,27 @@ public class Items_fromNameListChecker extends EmptyVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-        if (owner.equals(ITEMS_CLASS) &&  name.equals("fromNameList") && desc.equals(METHOD_DESCRIPTOR)) {
+        if (item_fromNameList.matches(owner,name,desc)) {
             reporter.problem(V1_406,"Found Item.fromNameList(String,Class). Replace with fromNameList(ItemGroup,String,Class,)");
         }
+
+        if (jenkins_getItem1.matches(owner,name,desc)) {
+            reporter.problem(V1_406,"Found suspicious Jenkins.getItem(String). Replace with Jenkins.getItem(String,context)");
+        }
+
+//        if (jenkins_getItem2.matches(owner,name,desc)) {
+//            reporter.problem(V1_406,"Found Jenkins.getItem(String,Class). Replace with Jenkins.getItem(String,context,Class)");
+//        }
     }
 
     private static final VersionNumber V1_406 = new VersionNumber("1.406");
-    private static final String ITEMS_CLASS = Type.getInternalName(Items.class);
-    private static final String METHOD_DESCRIPTOR;
+    private static final MethodMatcher jenkins_getItem1;
+    private static final MethodMatcher item_fromNameList;
     static {
         try {
-            METHOD_DESCRIPTOR = Type.getMethodDescriptor(Items.class.getMethod("fromNameList",String.class,Class.class));
+            item_fromNameList = new MethodMatcher(Items.class.getMethod("fromNameList",String.class,Class.class));
+            jenkins_getItem1 = new MethodMatcher(Jenkins.class.getMethod("getItem",String.class)).addOwner(Hudson.class);
+//            jenkins_getItem2 = new MethodMatcher(Jenkins.class.getMethod("getItem",String.class,Class.class)).addOwner(Hudson.class);
         } catch (NoSuchMethodException e) {
             throw new Error(e);
         }
