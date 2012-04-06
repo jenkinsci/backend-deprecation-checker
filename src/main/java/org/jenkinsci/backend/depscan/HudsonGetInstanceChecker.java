@@ -1,6 +1,7 @@
 package org.jenkinsci.backend.depscan;
 
 import hudson.model.Hudson;
+import hudson.util.VersionNumber;
 import org.kohsuke.asm3.MethodVisitor;
 import org.kohsuke.asm3.Opcodes;
 import org.kohsuke.asm3.commons.EmptyVisitor;
@@ -20,7 +21,9 @@ class HudsonGetInstanceChecker extends EmptyVisitor {
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc) {
         if (opcode== Opcodes.INVOKESTATIC &&  owner.equals("hudson/model/Hudson") &&  name.equals("getInstance")) {
-            reporter.problem("Found Hudson.getInstance(). Replace with Jenkins.getInstance()");
+            reporter.problem(V1_416,"Found Hudson.getInstance(). Replace with Jenkins.getInstance()");
         }
     }
+
+    private static final VersionNumber V1_416 = new VersionNumber("1.416");
 }

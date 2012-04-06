@@ -9,6 +9,7 @@ import org.kohsuke.asm3.ClassReader;
 import org.kohsuke.asm3.Label;
 import org.kohsuke.asm3.MethodAdapter;
 import org.kohsuke.asm3.MethodVisitor;
+import org.kohsuke.asm3.Opcodes;
 import org.kohsuke.asm3.commons.EmptyVisitor;
 
 import java.io.File;
@@ -29,7 +30,7 @@ public class App {
 
         Collection<PluginHistory> plugins = repo.listHudsonPlugins();
         for (PluginHistory p : new ArrayList<PluginHistory>(plugins)) {
-            System.out.println("Checking "+p.artifactId);
+            System.out.println("Checking "+p.artifactId+ " v."+p.latest().version);
             scan(p.latest());
         }
     }
@@ -50,10 +51,13 @@ public class App {
                     String sourceFileName;
                     String methodName;
                     String methodDescriptor;
+                    boolean isDeprecated;
 
                     @Override
                     public String toString() {
-                        return String.format("in %s at %s:%d", methodName+methodDescriptor, sourceFileName, lineNumber);
+                        String msg = String.format("in %s at %s:%d", methodName + methodDescriptor, sourceFileName, lineNumber);
+                        if (isDeprecated)   msg += " (deprecated method)";
+                        return msg;
                     }
                 }
 
@@ -70,6 +74,7 @@ public class App {
                 cr.accept(new EmptyVisitor() {
                     @Override
                     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                        pos.isDeprecated = (access&Opcodes.ACC_DEPRECATED)!=0;
                         pos.methodName = name;
                         pos.methodDescriptor = desc;
                         return new MethodAdapter(checker) {

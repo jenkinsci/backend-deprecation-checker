@@ -18,7 +18,7 @@ public class Items_fromNameListChecker extends EmptyVisitor {
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc) {
         if (owner.equals(ITEMS_CLASS) &&  name.equals("fromNameList") && desc.equals(METHOD_DESCRIPTOR)) {
-            reporter.problem(V1_406,"Found Hudson.getInstance(). Replace with Jenkins.getInstance()");
+            reporter.problem(V1_406,"Found Item.fromNameList(String,Class). Replace with fromNameList(ItemGroup,String,Class,)");
         }
     }
 
